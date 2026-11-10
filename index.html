@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Грамматика Скруджа</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=PT+Mono&family=PT+Sans:ital,wght@0,400;0,700;1,400&family=Playfair+Display:ital,wght@0,600;0,800;1,600&display=swap" rel="stylesheet">
+<style>
+:root {
+  /* Layout: one left-aligned reading column, five "staves" like the book's five chapters.
+     One visual world on purpose: a London night lit by a single candle. */
+  color-scheme: dark;
+  --night: #131829;
+  --fog: #1e2540;
+  --fog-2: #2a3357;
+  --paper: #ece8dc;
+  --mist: #a9b1c9;
+  --candle: #f0b649;
+  --frost: #9cc7dc;
+  --good: #86d0a4;
+  --bad: #ee8e7c;
+  --line: #3a446b;
+  --display: "Playfair Display", Georgia, "Times New Roman", serif;
+  --body: "PT Sans", "Segoe UI", Arial, sans-serif;
+  --mono: "PT Mono", Consolas, "Courier New", monospace;
+}
+* { box-sizing: border-box; }
+html { background: var(--night); }
+body {
+  margin: 0;
+  background: var(--night);
+  color: var(--paper);
+  font-family: var(--body);
+  font-size: 18px;
+  line-height: 1.6;
+}
+main {
+  max-width: 780px;
+  margin: 0 auto;
+  padding: 40px 20px 72px;
+  display: flex;
+  flex-direction: column;
+  gap: 64px;
+}
+h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0; line-height: 1.15; }
+h1 { font-size: clamp(2.1rem, 6vw, 3.3rem); font-weight: 800; }
+h2 { font-size: clamp(1.6rem, 4.4vw, 2.2rem); font-weight: 600; }
+h3 { font-size: 1.2rem; font-weight: 600; }
+p { margin: 0; max-width: 65ch; }
+a { color: var(--frost); }
+.en { font-family: var(--mono); font-size: 0.95em; color: var(--frost); }
+.muted { color: var(--mist); }
+section { display: flex; flex-direction: column; gap: 20px; }
+.stave {
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--candle);
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+:focus-visible { outline: 3px solid var(--candle); outline-offset: 3px; }
+
+/* Hero */
+.hero { gap: 24px; }
+.joke {
+  margin: 0;
+  padding: 24px 24px 24px 28px;
+  border-left: 4px solid var(--candle);
+  background: var(--fog);
+  border-radius: 0 10px 10px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.joke .en { font-size: clamp(1.02rem, 2.9vw, 1.22rem); line-height: 1.55; color: var(--paper); }
+.joke .en b { color: var(--candle); font-weight: 400; }
+.joke .ru { color: var(--mist); font-style: italic; }
+.note { font-size: 0.92rem; color: var(--mist); }
+
+/* Plot strip */
+.plot { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; counter-reset: plot; }
+.plot li {
+  counter-increment: plot;
+  display: grid;
+  grid-template-columns: 2.2rem 1fr;
+  gap: 8px;
+  align-items: baseline;
+}
+.plot li::before { content: counter(plot); font-family: var(--display); font-size: 1.3rem; color: var(--candle); }
+
+/* Fact cards */
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; }
+.fact {
+  text-align: left;
+  background: var(--fog);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 150px;
+}
+.fact:hover { border-color: var(--candle); }
+.fact .claim { font-weight: 700; }
+.fact .ask { font-size: 0.85rem; color: var(--candle); font-family: var(--mono); }
+.fact .answer { display: none; font-size: 0.95rem; color: var(--paper); }
+.fact .verdict { font-family: var(--mono); font-size: 0.82rem; letter-spacing: 0.06em; text-transform: uppercase; }
+.fact.open .answer { display: block; }
+.fact.open .ask { display: none; }
+.fact.open { background: var(--fog-2); }
+.fact .verdict.true { color: var(--good); }
+.fact .verdict.false { color: var(--bad); }
+.fact .verdict.half { color: var(--candle); }
+
+/* Glossary */
+.gloss { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 8px 20px; margin: 0; }
+.gloss div { border-top: 1px solid var(--line); padding-top: 8px; }
+.gloss dt { font-family: var(--mono); color: var(--frost); font-size: 0.95rem; }
+.gloss dd { margin: 0; font-size: 0.95rem; color: var(--mist); }
+
+/* Ghosts */
+.ghosts { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; }
+.ghost { background: var(--fog); border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 8px; border-top: 3px solid var(--frost); }
+.ghost .tense { font-family: var(--mono); font-size: 0.8rem; color: var(--candle); text-transform: uppercase; letter-spacing: 0.08em; }
+.ghost.fourth { border-top-color: var(--candle); background: var(--fog-2); }
+.tipwrap { position: relative; }
+.tip { background: transparent; border: 0; padding: 0; color: var(--candle); border-bottom: 1px dashed var(--candle); font-size: 0.95rem; }
+.tipbox {
+  display: none;
+  position: absolute;
+  left: 0;
+  top: calc(100% + 10px);
+  z-index: 5;
+  width: 100%;
+  max-width: 480px;
+  background: var(--night);
+  border: 1px solid var(--candle);
+  border-radius: 10px;
+  padding: 16px;
+  font-size: 0.93rem;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
+  flex-direction: column;
+  gap: 10px;
+}
+.tipwrap.open .tipbox { display: flex; }
+@media (hover: hover) { .tipwrap:hover .tipbox { display: flex; } }
+.tiplist { margin: 0; display: grid; gap: 8px; }
+.tiplist div { display: grid; grid-template-columns: 6.2rem 1fr; gap: 8px; }
+.tiplist dt { font-family: var(--mono); font-size: 0.82rem; color: var(--candle); padding-top: 3px; }
+.tiplist dd { margin: 0; }
+.pull { font-family: var(--display); font-style: italic; font-size: 1.25rem; line-height: 1.4; color: var(--paper); border-left: 4px solid var(--frost); padding-left: 16px; }
+
+/* Builder */
+.panel { background: var(--fog); border: 1px solid var(--line); border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+.tabs { display: flex; flex-wrap: wrap; gap: 8px; }
+.tab {
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 0.92rem;
+}
+.tab[aria-selected="true"] { background: var(--candle); border-color: var(--candle); color: var(--night); font-weight: 700; }
+.phrase { font-family: var(--mono); font-size: clamp(1.15rem, 4.2vw, 1.7rem); line-height: 1.4; overflow-wrap: anywhere; }
+.phrase .new { color: var(--night); background: var(--candle); padding: 0 6px; border-radius: 4px; }
+.phrase.small { font-size: clamp(1rem, 3.4vw, 1.3rem); min-height: 5.6em; }
+input[type="range"] { width: 100%; accent-color: var(--candle); margin: 0; }
+.meters { display: grid; gap: 10px; }
+.meter { display: grid; grid-template-columns: 7.5rem 1fr; gap: 12px; align-items: center; font-size: 0.92rem; color: var(--mist); }
+.bar { height: 12px; background: var(--night); border: 1px solid var(--line); border-radius: 999px; overflow: hidden; }
+.bar i { display: block; height: 100%; width: 0; background: var(--candle); }
+.bar i.cold { background: var(--frost); }
+@media (prefers-reduced-motion: no-preference) { .bar i { transition: width .25s; } }
+.formula { font-family: var(--mono); font-size: 0.9rem; color: var(--mist); }
+.ru-line { font-size: 1.1rem; }
+.ru-line b { color: var(--candle); }
+.timeline { width: 100%; overflow-x: auto; }
+.timeline svg { display: block; width: 100%; min-width: 440px; height: auto; }
+.tl-line { stroke: var(--mist); stroke-width: 2; }
+.tl-ghost { stroke: var(--frost); stroke-width: 2; stroke-dasharray: 6 6; }
+.tl-text { fill: var(--mist); font-family: var(--body); font-size: 13px; }
+.tl-eye { fill: var(--frost); }
+.tl-event { fill: var(--candle); }
+.tl-arrow { stroke: var(--paper); stroke-width: 2; fill: none; }
+.tl-label { fill: var(--paper); font-family: var(--body); font-size: 13px; font-weight: 700; }
+.next { align-self: flex-start; background: var(--fog-2); border: 1px solid var(--candle); border-radius: 8px; padding: 8px 16px; }
+.next:hover { background: var(--candle); color: var(--night); }
+.warn { border-left: 4px solid var(--bad); padding-left: 14px; color: var(--paper); }
+
+/* If-clause decoder */
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip {
+  font-family: var(--mono);
+  font-size: clamp(0.95rem, 3.2vw, 1.15rem);
+  background: var(--night);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 8px 12px;
+}
+.chip[aria-pressed="true"] { border-color: var(--candle); color: var(--candle); background: var(--fog-2); }
+.decode { min-height: 110px; display: flex; flex-direction: column; gap: 8px; }
+
+/* Before / after */
+.switch { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; align-self: flex-start; flex-wrap: wrap; }
+.switch button { background: transparent; border: 0; padding: 8px 18px; }
+.switch button[aria-pressed="true"] { background: var(--candle); color: var(--night); font-weight: 700; }
+.badge { align-self: flex-start; font-family: var(--mono); font-size: 0.8rem; letter-spacing: 0.06em; text-transform: uppercase; border: 1px solid var(--frost); color: var(--frost); padding: 2px 10px; border-radius: 999px; }
+.aside { background: var(--fog); border-radius: 10px; padding: 16px 18px; display: flex; flex-direction: column; gap: 8px; font-size: 0.97rem; }
+.aside h3 { font-size: 1.05rem; color: var(--candle); }
+
+/* Quiz */
+.quiz { display: flex; flex-direction: column; gap: 18px; }
+.q { background: var(--fog); border: 1px solid var(--line); border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 12px; }
+.q .num { font-family: var(--mono); font-size: 0.8rem; color: var(--candle); }
+.q .opts { display: flex; flex-direction: column; gap: 8px; }
+.opt { text-align: left; background: var(--night); border: 1px solid var(--line); border-radius: 8px; padding: 10px 14px; }
+.opt:hover:not(:disabled) { border-color: var(--candle); }
+.opt:disabled { cursor: default; opacity: 0.75; }
+.opt.right { border-color: var(--good); color: var(--good); opacity: 1; }
+.opt.wrong { border-color: var(--bad); color: var(--bad); opacity: 1; }
+.opt.right::after { content: "  ✓ верно"; font-family: var(--mono); font-size: 0.85rem; }
+.opt.wrong::after { content: "  ✗ мимо"; font-family: var(--mono); font-size: 0.85rem; }
+.why { display: none; font-size: 0.95rem; color: var(--mist); }
+.q.done .why { display: block; }
+.score { background: var(--fog-2); border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 8px; }
+.score .big { font-family: var(--display); font-size: 2rem; color: var(--candle); font-variant-numeric: tabular-nums; }
+.reset { align-self: flex-start; background: transparent; border: 1px solid var(--line); border-radius: 8px; padding: 6px 14px; font-size: 0.92rem; }
+
+footer { border-top: 1px solid var(--line); padding-top: 20px; font-size: 0.9rem; color: var(--mist); display: flex; flex-direction: column; gap: 10px; }
+footer ul { margin: 0; padding-left: 20px; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .fact, .tab, .chip, .opt, .next { transition: background-color .15s, border-color .15s, color .15s; }
+}
+</style>
+</head>
+<body>
+<main>
+
+  <section class="hero">
+    <div class="stave">Разбор одной шутки · English B1–B2</div>
+    <h1>Дух Рождества, которого нет в учебнике</h1>
+    <p>В английском интернете много лет ходит шутка про Скруджа. Чтобы над ней посмеяться, нужно знать две вещи: одну старую британскую повесть и немного грамматики. За десять минут разберём обе.</p>
+    <blockquote class="joke">
+      <div class="en">“I am the Ghost of Christmas <b>Future Imperfect Conditional</b>,” said the Spirit. “I bring news of what <b>would have been going to happen</b>, if you <b>were not to have been going to change</b> your ways.”</div>
+      <div class="ru">«Я Дух Рождества Будущего Несовершенного Условного, — сказал Дух. — Я принёс весть о том, что должно было бы случиться, если бы ты не собирался исправиться».</div>
+    </blockquote>
+    <p class="note">Повод вспомнить шутку: в ноябре 2026 года в кино выходит новая экранизация с Джонни Деппом. В оригинале фильм называется Ebenezer, в нашем прокате идёт как «Скрудж».</p>
+  </section>
+
+  <section>
+    <div class="stave">Строфа I</div>
+    <h2>Кто такой Скрудж</h2>
+    <p>Эбенезер Скрудж — герой повести Чарльза Диккенса <span class="en">A Christmas Carol</span> (1843), по-русски «Рождественская песнь в прозе». Сюжет в четырёх шагах:</p>
+    <ol class="plot">
+      <li>Скрудж, хозяин лондонской конторы, богат, скуп и ненавидит Рождество.</li>
+      <li>В сочельник к нему является призрак покойного компаньона Марли и предупреждает: придут три духа.</li>
+      <li>Духи показывают Скруджу его прошлое, чужое настоящее (бедную семью его клерка с больным Малюткой Тимом) и будущее: его собственную могилу, о которой никто не плачет.</li>
+      <li>Утром Рождества Скрудж просыпается другим человеком.</li>
+    </ol>
+    <p>Для британцев и американцев это примерно то же, что для нас «Ирония судьбы»: историю пересказывают и экранизируют каждый декабрь. У нас её знают хуже. В СССР Рождество официально не отмечали, главным зимним праздником стал Новый год, и рождественская классика осталась в тени.</p>
+
+    <h3>Правда или выдумка? Нажмите на карточку</h3>
+    <div class="facts" id="facts"></div>
+
+    <h3>Слова, которые пригодятся</h3>
+    <dl class="gloss">
+      <div><dt>Bah! Humbug!</dt><dd>«Вздор! Чепуха!» Коронная фраза Скруджа.</dd></div>
+      <div><dt>a miser</dt><dd>скряга</dd></div>
+      <div><dt>Christmas Eve</dt><dd>сочельник, вечер 24 декабря</dd></div>
+      <div><dt>to change your ways</dt><dd>исправиться, начать жить иначе</dd></div>
+      <div><dt>a spirit / a ghost</dt><dd>дух / призрак</dd></div>
+      <div><dt>to bring news of</dt><dd>принести весть о чём-то</dd></div>
+    </dl>
+  </section>
+
+  <section>
+    <div class="stave">Строфа II</div>
+    <h2>Три духа и одна грамматическая проблема</h2>
+    <p>Диккенс назвал духов по временам. Грамматическая шутка напрашивалась с самого начала.</p>
+    <div class="ghosts">
+      <div class="ghost">
+        <div class="tense">Past</div>
+        <h3>Ghost of Christmas Past</h3>
+        <p class="en">You were happy once.</p>
+        <p class="muted">Что было.</p>
+      </div>
+      <div class="ghost">
+        <div class="tense">Present</div>
+        <h3>Ghost of Christmas Present</h3>
+        <p class="en">They are poor, but they are happy.</p>
+        <p class="muted">Что есть.</p>
+      </div>
+      <div class="ghost">
+        <div class="tense">Future</div>
+        <h3>Ghost of Christmas Yet to Come</h3>
+        <p class="en">You will die alone.</p>
+        <p class="muted">Что будет. Или нет?</p>
+      </div>
+    </div>
+    <p>У третьего духа проблема. Он показывает Скруджу будущее, Скрудж пугается и меняется, и показанное будущее не наступает. Скрудж сам это чувствует и спрашивает духа:</p>
+    <p class="pull">“Are these the shadows of the things that Will be, or are they shadows of things that May be, only?”</p>
+    <p>Это вопрос о модальности: <span class="en">will</span> (точно будет) или <span class="en">may</span> (может быть). Так как же назвать будущее, которое надвигалось, но уже не случится? Шутка придумывает для него четвёртого духа.</p>
+    <div class="ghosts">
+      <div class="ghost fourth">
+        <div class="tense">Future + Imperfect + Conditional</div>
+        <h3>Ghost of Christmas Future Imperfect Conditional</h3>
+        <p class="muted">Такого времени нет. Шутка взяла три настоящих грамматических слова и склеила их в одно, чтобы звучало как можно учёнее.</p>
+        <div class="tipwrap" id="tipwrap">
+          <button type="button" class="tip" id="tipBtn" aria-expanded="false" aria-controls="tipBox">Откуда эти три слова?</button>
+          <div class="tipbox" id="tipBox" role="note">
+            <p>Британцы знают их со школьных уроков французского и латыни. Там это три разные формы глагола. По-французски они отличаются парой букв:</p>
+            <dl class="tiplist">
+              <div><dt>Future</dt><dd><span class="en">je parlerai</span> — я буду говорить</dd></div>
+              <div><dt>Imperfect</dt><dd><span class="en">je parlais</span> — я говорил (долго или обычно). Буквально «незавершённое», родственник нашего несовершенного вида.</dd></div>
+              <div><dt>Conditional</dt><dd><span class="en">je parlerais</span> — я бы говорил</dd></div>
+            </dl>
+            <p>В английском таких отдельных форм нет, он обходится словами <span class="en">will</span>, <span class="en">would</span> и <span class="en">was doing</span>. Поэтому для англичанина эти термины звучат так же по-школьному, как для нас «деепричастный оборот». А все три сразу — как «деепричастный оборот будущего времени».</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="stave">Строфа III</div>
+    <h2>Как собрана шутка</h2>
+    <p>Фраза духа выглядит чудовищем, но собрана из обычных деталей уровня B1–B2. Пройдите четыре шага и посмотрите, как она растёт.</p>
+
+    <div class="panel" id="builder">
+      <div class="tabs" role="tablist" aria-label="Шаги сборки" id="tabs"></div>
+      <div class="phrase" id="phrase" aria-live="polite"></div>
+      <div class="formula" id="formula"></div>
+      <div class="ru-line" id="ruline"></div>
+      <div class="timeline" id="timeline"></div>
+      <p id="explain"></p>
+      <p class="en" id="example"></p>
+      <button class="next" id="next" type="button">Следующий шаг</button>
+    </div>
+
+    <h3>Теперь условие. Нажимайте на куски</h3>
+    <div class="panel">
+      <div class="chips" id="chips"></div>
+      <div class="decode" id="decode" aria-live="polite"></div>
+      <p class="muted">Всё вместе ≈ <span class="en">if you had not been going to change your ways</span>, а по-человечески: <span class="en">if you hadn't changed</span>.</p>
+    </div>
+
+  </section>
+
+  <section>
+    <div class="stave">Антракт</div>
+    <h2>Так в чём же шутка?</h2>
+    <p>Объяснять шутку — верный способ её убить, поэтому сначала попробуйте её почувствовать. Двигайте ползунок: дух говорит одно и то же, но всё точнее и точнее.</p>
+
+    <div class="panel">
+      <label for="pedant" class="formula">Уровень педантизма духа: <span id="pedantName"></span></label>
+      <input type="range" id="pedant" min="0" max="4" step="1" value="0">
+      <div class="phrase small" id="pedantEn" aria-live="polite"></div>
+      <div class="ru-line" id="pedantRu"></div>
+      <div class="meters">
+        <div class="meter"><span>Точность</span><div class="bar"><i id="barExact"></i></div></div>
+        <div class="meter"><span>Понятность</span><div class="bar"><i id="barClear" class="cold"></i></div></div>
+      </div>
+      <p class="note">Шкалы шуточные, но закон настоящий: чем точнее дух, тем меньше его понимают.</p>
+    </div>
+
+    <h3>1. Мы ждали другого</h3>
+    <p>Past, Present… третьим должен быть Future. Вместо него выходит дух с именем из грамматического справочника. Юмор часто так и устроен: два шага по знакомой дорожке, а на третьем подножка.</p>
+
+    <h3>2. Страшный призрак говорит как зануда-учитель</h3>
+    <p>Ночь, могила, судьба человека. В такой сцене ждут грозных и коротких слов. А дух вместо «Покайся!» аккуратно согласовывает времена. Представьте Смерть с косой, которая начинает со слов: «Согласно пункту 4.2 регламента…»</p>
+
+    <h3>3. Самое смешное: зануда прав</h3>
+    <p>Дух честно пытается быть точным. Сказать <span class="en">what will happen</span> он не может: если Скрудж изменится, этого не будет. Сказать <span class="en">what would have happened</span> тоже рано: Скрудж ещё не изменился. Остаётся городить конструкцию, которая покрывает все случаи сразу. Так пишут юристы, и так никто не разговаривает.</p>
+
+    <h3>4. Перебор и есть приём</h3>
+    <p>Одна сложная форма звучит умно. Две звучат занудно. Пять, вложенных друг в друга как матрёшки, звучат абсурдно. По-русски ощущение примерно такое:</p>
+    <p class="pull">«Я принёс весть о том, что собиралось бы намереваться произойти, если бы ты не был бы собирающимся передумать».</p>
+    <h3>5. И немного про всех нас</h3>
+    <p>Присмотритесь: дух говорит не «если бы ты не изменился», а «если бы ты не <em>собирался</em> измениться». <span class="en">Be going to</span> — это намерение, а не поступок. Каждый декабрь люди дают себе новогодние обещания, по-английски <span class="en">New Year's resolutions</span>: <span class="en">I'm going to quit smoking. I'm going to start running.</span> А в феврале многие всё ещё <span class="en">going to</span>.</p>
+    <p>В таком прочтении Скрудж из шутки очень узнаваем: он пока ничего не изменил, он только собирается. И слово <span class="en">imperfect</span> получает второй смысл. Это ещё и «несовершенный», как любой из нас накануне Нового года.</p>
+
+    <p>Это шутка для своих. Её придумали и пересылают друг другу люди, которые сами когда-то мучились с временами. Теперь вы тоже в этом клубе.</p>
+
+    <p class="warn">Так никто не говорит. Каждая деталь фразы настоящая, но вместе это нарочитый перебор. На экзамене и в жизни используйте версии из следующей строфы.</p>
+  </section>
+
+  <section>
+    <div class="stave">Строфа IV</div>
+    <h2>То же самое нормальным английским</h2>
+    <p>Вся повесть умещается между двумя предложениями. Переключите момент времени.</p>
+    <div class="panel">
+      <div class="switch" role="group" aria-label="Момент истории">
+        <button type="button" id="before" aria-pressed="true">До визита духов</button>
+        <button type="button" id="after" aria-pressed="false">После: Скрудж изменился</button>
+      </div>
+      <div class="badge" id="condBadge"></div>
+      <div class="phrase" id="condPhrase" aria-live="polite"></div>
+      <div class="formula" id="condFormula"></div>
+      <div class="ru-line" id="condRu"></div>
+      <p id="condExplain"></p>
+    </div>
+    <p>Путь Скруджа — это переход из первого типа условных в третий: от «что будет, если» к «что было бы, если бы».</p>
+
+    <div class="aside">
+      <h3>Для IELTS</h3>
+      <p>В Speaking и Writing оценивают <span class="en">Grammatical Range and Accuracy</span>. Уместный third conditional показывает диапазон: <span class="en">If I had studied abroad, I would have learned the language faster.</span> Формальное <span class="en">were to</span> хорошо звучит в эссе: <span class="en">If governments were to ban cars in city centres, air quality would improve.</span></p>
+    </div>
+    <div class="aside">
+      <h3>Заметки на полях, по оксфордским грамматикам</h3>
+      <p>First, Second, Third Conditional — учебные ярлыки. Они удобны, но не покрывают все живые варианты условных предложений.</p>
+      <p>По Oxford Modern English Grammar у английского глагола только две временные формы: present и past. Отдельной формы будущего нет, о будущем говорят через <span class="en">will</span>, <span class="en">be going to</span> и другие конструкции. Поэтому на шаге 1 выше написано «способ сказать о будущем», а не «будущее время».</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="stave">Строфа V</div>
+    <h2>Проверьте себя</h2>
+    <p>Шесть вопросов. Ответ и объяснение появляются сразу.</p>
+    <div class="quiz" id="quiz"></div>
+    <div class="score" id="score">
+      <div class="big" id="scoreNum">0 / 6</div>
+      <p id="scoreText">Ответьте на все вопросы, и духи вынесут вердикт.</p>
+      <button class="reset" id="reset" type="button">Начать заново</button>
+    </div>
+  </section>
+
+  <footer>
+    <p>В повести Диккенса пять глав, и называются они staves, строфы. Поэтому строф пять и здесь.</p>
+    <p>Что почитать дальше:</p>
+    <ul>
+      <li>Bas Aarts, Oxford Modern English Grammar (Oxford University Press)</li>
+      <li>Michael Swan, Practical English Usage (Oxford University Press)</li>
+      <li>Charles Dickens, A Christmas Carol (1843). Текст в общественном достоянии, читается за вечер.</li>
+    </ul>
+  </footer>
+</main>
+
+<script>
+(function () {
+  "use strict";
+  function el(tag, cls, text) {
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text != null) n.textContent = text;
+    return n;
+  }
+
+  /* ---------- Facts ---------- */
+  var FACTS = [
+    { claim: "Скрудж — это селезень из «Утиных историй».", v: "half", vt: "Наполовину",
+      a: "Дядя Скрудж (Scrooge McDuck) появился в комиксах Карла Баркса в 1947 году и назван в честь героя Диккенса. К тому моменту книжному Скруджу было уже 104 года." },
+    { claim: "Диккенс написал повесть примерно за шесть недель.", v: "true", vt: "Правда",
+      a: "Он писал её осенью 1843 года. Книга вышла 19 декабря, и первый тираж в 6000 экземпляров разошёлся к сочельнику." },
+    { claim: "Слово scrooge есть в словарях как обычное существительное.", v: "true", vt: "Правда",
+      a: "A scrooge значит «скряга». Можно сказать: Don't be such a scrooge! Редкий случай, когда фамилия героя стала словом языка." },
+    { claim: "В книге третий дух произносит длинную речь о будущем.", v: "false", vt: "Выдумка",
+      a: "Дух будущего Рождества не говорит ни слова, он только указывает рукой. Поэтому болтливый дух из шутки смешон вдвойне." },
+    { claim: "Диккенс знал о бедности только из газет.", v: "false", vt: "Выдумка",
+      a: "Когда Чарльзу было 12, его отца посадили в долговую тюрьму, а сам он работал на фабрике ваксы. Повесть во многом написана из злости на детскую нищету." },
+    { claim: "Первая коммерческая рождественская открытка появилась в том же 1843 году.", v: "true", vt: "Правда",
+      a: "Викторианское Рождество, каким его знает мир, складывалось именно тогда. Повесть Диккенса помогла сделать расхожим и приветствие Merry Christmas." }
+  ];
+  var factsBox = document.getElementById("facts");
+  FACTS.forEach(function (f) {
+    var b = el("button", "fact");
+    b.type = "button";
+    b.setAttribute("aria-expanded", "false");
+    b.appendChild(el("span", "claim", f.claim));
+    b.appendChild(el("span", "ask", "правда или выдумка?"));
+    var ans = el("span", "answer");
+    ans.appendChild(el("span", "verdict " + f.v, f.vt));
+    ans.appendChild(document.createElement("br"));
+    ans.appendChild(document.createTextNode(f.a));
+    b.appendChild(ans);
+    b.addEventListener("click", function () {
+      var open = b.classList.toggle("open");
+      b.setAttribute("aria-expanded", open ? "true" : "false");
+    });
+    factsBox.appendChild(b);
+  });
+
+  /* ---------- Tooltip ---------- */
+  var tipWrap = document.getElementById("tipwrap");
+  var tipBtn = document.getElementById("tipBtn");
+  function setTip(open) {
+    tipWrap.classList.toggle("open", open);
+    tipBtn.setAttribute("aria-expanded", open ? "true" : "false");
+  }
+  tipBtn.addEventListener("click", function (e) {
+    e.stopPropagation();
+    setTip(!tipWrap.classList.contains("open"));
+  });
+  document.addEventListener("click", function (e) {
+    if (!tipWrap.contains(e.target)) setTip(false);
+  });
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") setTip(false);
+  });
+
+  /* ---------- Builder ---------- */
+  var STEPS = [
+    { tab: "1. Прогноз",
+      parts: [["is going to", 1], [" happen", 0]],
+      formula: "am / is / are + going to + глагол",
+      ru: "<b>случится</b>",
+      explain: "Способ сказать о будущем, когда оно уже видно из настоящего: есть признаки или план. Дух смотрит из «сейчас» вперёд.",
+      example: "Look at those clouds. It is going to snow.",
+      eye: [300, 50], ev: [480, 50], ghost: false },
+    { tab: "2. Взгляд из прошлого",
+      parts: [["was", 1], [" going to happen", 0]],
+      formula: "was / were + going to + глагол",
+      ru: "<b>должно было</b> случиться",
+      explain: "Future in the past: то же самое, но точка зрения переехала в прошлое. Часто намекает, что план не сбылся.",
+      example: "I was going to call you, but I fell asleep.",
+      eye: [110, 50], ev: [250, 50], ghost: false },
+    { tab: "3. Мир, которого нет",
+      parts: [["would have", 1], [" happened", 0]],
+      formula: "would have + V3",
+      ru: "случилось <b>бы</b> (но не случилось)",
+      explain: "Отдельная деталь: результат в нереальном прошлом. Событие лежит на другой ветке истории, которой не было.",
+      example: "Without the ghosts, Scrooge would have died alone.",
+      eye: [300, 50], ev: [200, 112], ghost: true },
+    { tab: "4. Всё сразу",
+      parts: [["would have", 1], [" been", 1], [" going to happen", 0]],
+      formula: "would have + been (V3 от be) + going to + глагол",
+      ru: "<b>должно было бы</b> случиться",
+      explain: "Шутка склеивает шаги 2 и 3: взгляд из прошлого вперёд, но на ветке истории, которая отменилась. Грамматика это позволяет, живая речь нет.",
+      example: "…what would have been going to happen.",
+      eye: [110, 112], ev: [250, 112], ghost: true }
+  ];
+  var cur = 0;
+  var tabsBox = document.getElementById("tabs");
+  var tabBtns = STEPS.map(function (s, i) {
+    var t = el("button", "tab", s.tab);
+    t.type = "button";
+    t.setAttribute("role", "tab");
+    t.addEventListener("click", function () { cur = i; renderStep(); });
+    tabsBox.appendChild(t);
+    return t;
+  });
+
+  function timelineSVG(s) {
+    var ex = s.eye[0], ey = s.eye[1], vx = s.ev[0], vy = s.ev[1];
+    var ghostOpacity = s.ghost ? 1 : 0.3;
+    var dx = vx - ex, dy = vy - ey, len = Math.sqrt(dx * dx + dy * dy) || 1;
+    var ax1 = ex + dx / len * 14, ay1 = ey + dy / len * 14;
+    var ax2 = vx - dx / len * 16, ay2 = vy - dy / len * 16;
+    var eyeLabelY = ey === 50 ? ey - 16 : ey + 28;
+    var evLabelY = vy === 50 ? vy - 16 : vy + 28;
+    return '' +
+      '<svg viewBox="0 0 600 160" role="img" aria-label="Шкала времени: откуда смотрим и где событие">' +
+      '<defs><marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">' +
+      '<path d="M0 0 L10 5 L0 10 z" fill="#ece8dc"></path></marker></defs>' +
+      '<line class="tl-line" x1="30" y1="50" x2="570" y2="50"></line>' +
+      '<line class="tl-line" x1="300" y1="42" x2="300" y2="58"></line>' +
+      '<text class="tl-text" x="30" y="74">прошлое</text>' +
+      '<text class="tl-text" x="300" y="74" text-anchor="middle">сейчас</text>' +
+      '<text class="tl-text" x="570" y="74" text-anchor="end">будущее</text>' +
+      '<g opacity="' + ghostOpacity + '">' +
+      '<line class="tl-ghost" x1="30" y1="112" x2="570" y2="112"></line>' +
+      '<text class="tl-text" x="570" y="104" text-anchor="end">мир, которого уже нет</text>' +
+      '</g>' +
+      '<line class="tl-arrow" x1="' + ax1 + '" y1="' + ay1 + '" x2="' + ax2 + '" y2="' + ay2 + '" marker-end="url(#arr)"></line>' +
+      '<circle class="tl-eye" cx="' + ex + '" cy="' + ey + '" r="9"></circle>' +
+      '<rect class="tl-event" x="' + (vx - 9) + '" y="' + (vy - 9) + '" width="18" height="18" transform="rotate(45 ' + vx + ' ' + vy + ')"></rect>' +
+      '<text class="tl-label" x="' + ex + '" y="' + eyeLabelY + '" text-anchor="middle">смотрим отсюда</text>' +
+      '<text class="tl-label" x="' + vx + '" y="' + evLabelY + '" text-anchor="middle">событие</text>' +
+      '</svg>';
+  }
+
+  function renderStep() {
+    var s = STEPS[cur];
+    tabBtns.forEach(function (t, i) { t.setAttribute("aria-selected", i === cur ? "true" : "false"); });
+    var ph = document.getElementById("phrase");
+    ph.textContent = "";
+    s.parts.forEach(function (p) {
+      var sp = el("span", p[1] ? "new" : "", p[0].trim());
+      ph.appendChild(sp);
+      ph.appendChild(document.createTextNode(" "));
+    });
+    document.getElementById("formula").textContent = "Формула: " + s.formula;
+    document.getElementById("ruline").innerHTML = "По-русски: " + s.ru;
+    document.getElementById("timeline").innerHTML = timelineSVG(s);
+    document.getElementById("explain").textContent = s.explain;
+    document.getElementById("example").textContent = s.example;
+    document.getElementById("next").textContent = cur === STEPS.length - 1 ? "Сначала" : "Следующий шаг";
+  }
+  document.getElementById("next").addEventListener("click", function () {
+    cur = (cur + 1) % STEPS.length;
+    renderStep();
+  });
+  renderStep();
+
+  /* ---------- If-clause decoder ---------- */
+  var CHIPS = [
+    { t: "if you were … to", h: "Формальная гипотеза",
+      d: "Книжный способ сказать «если бы вдруг». If you were to lose your job ≈ if you lost your job. Звучит официально и осторожно.",
+      e: "If I were to move abroad, I would miss my family." },
+    { t: "not", h: "Отрицание",
+      d: "Ставится сразу после were: if you were not to… Всё условие становится «если бы ты НЕ…».",
+      e: "If she were not to come, we would start without her." },
+    { t: "to have been", h: "Перфектный инфинитив",
+      d: "To have + V3 сдвигает условие в прошлое: were to have done ≈ had done. Здесь V3 от be, потому что дальше идёт be going to.",
+      e: "If he were to have known ≈ If he had known." },
+    { t: "going to change", h: "Намерение",
+      d: "Та же конструкция be going to, что и в главной части: «собирался измениться». Шутка повторяет её дважды для симметрии.",
+      e: "I am going to change my job next year." },
+    { t: "your ways", h: "Идиома",
+      d: "Ways здесь значит «привычки, образ жизни». To change (или mend) your ways — исправиться. Полезное выражение для Speaking.",
+      e: "After the heart attack he finally changed his ways." }
+  ];
+  var chipsBox = document.getElementById("chips");
+  var decode = document.getElementById("decode");
+  var chipBtns = CHIPS.map(function (c, i) {
+    var b = el("button", "chip", c.t);
+    b.type = "button";
+    b.addEventListener("click", function () { showChip(i); });
+    chipsBox.appendChild(b);
+    return b;
+  });
+  function showChip(i) {
+    chipBtns.forEach(function (b, j) { b.setAttribute("aria-pressed", j === i ? "true" : "false"); });
+    var c = CHIPS[i];
+    decode.textContent = "";
+    decode.appendChild(el("h3", "", c.h));
+    decode.appendChild(el("p", "", c.d));
+    decode.appendChild(el("p", "en", c.e));
+  }
+  showChip(0);
+
+  /* ---------- Pedantometer ---------- */
+  var PEDANT = [
+    { n: "обычный человек", en: "I will show you your future.",
+      ru: "Я покажу тебе твоё будущее.", exact: 20, clear: 100 },
+    { n: "осторожный", en: "I will show you what will happen if you don't change.",
+      ru: "Я покажу, что случится, если ты не изменишься.", exact: 40, clear: 90 },
+    { n: "юрист", en: "I will show you what would happen if you didn't change your ways.",
+      ru: "Я покажу, что случилось бы, если бы ты не исправился.", exact: 60, clear: 70 },
+    { n: "профессор", en: "I bring news of what would have happened if you had not changed your ways.",
+      ru: "Я принёс весть о том, что случилось бы, если бы ты тогда не исправился.", exact: 80, clear: 45 },
+    { n: "дух из шутки", en: "I bring news of what would have been going to happen, if you were not to have been going to change your ways.",
+      ru: "Я принёс весть о том, что собиралось бы случиться, если бы ты не был собирающимся исправиться.", exact: 100, clear: 5 }
+  ];
+  var pedant = document.getElementById("pedant");
+  function renderPedant() {
+    var p = PEDANT[+pedant.value];
+    document.getElementById("pedantName").textContent = p.n;
+    document.getElementById("pedantEn").textContent = p.en;
+    document.getElementById("pedantRu").textContent = p.ru;
+    document.getElementById("barExact").style.width = p.exact + "%";
+    document.getElementById("barClear").style.width = p.clear + "%";
+  }
+  pedant.addEventListener("input", renderPedant);
+  renderPedant();
+
+  /* ---------- Before / after ---------- */
+  var COND = {
+    before: { badge: "First Conditional",
+      phrase: "This is what will happen if you don't change.",
+      formula: "Формула: if + Present Simple, will + глагол",
+      ru: "Вот что случится, если ты не изменишься.",
+      explain: "Реальная возможность в будущем. Скрудж ещё может выбрать, поэтому это предупреждение." },
+    after: { badge: "Third Conditional",
+      phrase: "This is what would have happened if you hadn't changed.",
+      formula: "Формула: if + Past Perfect, would have + V3",
+      ru: "Вот что случилось бы, если бы ты не изменился.",
+      explain: "Нереальное прошлое. Выбор сделан, плохой финал отменён, и о нём говорят уже как о несбывшемся." }
+  };
+  var bBefore = document.getElementById("before"), bAfter = document.getElementById("after");
+  function showCond(k) {
+    var c = COND[k];
+    bBefore.setAttribute("aria-pressed", k === "before" ? "true" : "false");
+    bAfter.setAttribute("aria-pressed", k === "after" ? "true" : "false");
+    document.getElementById("condBadge").textContent = c.badge;
+    document.getElementById("condPhrase").textContent = c.phrase;
+    document.getElementById("condFormula").textContent = c.formula;
+    document.getElementById("condRu").textContent = c.ru;
+    document.getElementById("condExplain").textContent = c.explain;
+  }
+  bBefore.addEventListener("click", function () { showCond("before"); });
+  bAfter.addEventListener("click", function () { showCond("after"); });
+  showCond("before");
+
+  /* ---------- Quiz ---------- */
+  var QUIZ = [
+    { q: "I ___ call you last night, but I fell asleep.",
+      o: ["was going to", "am going to", "would have been going to"], c: 0,
+      w: "Future in the past: план из прошлого, который не сбылся. Третий вариант оставим духам." },
+    { q: "If I ___ the alarm, I wouldn't have missed the flight.",
+      o: ["don't ignore", "hadn't ignored", "wouldn't ignore"], c: 1,
+      w: "Third Conditional: if + Past Perfect, would have + V3. Речь о прошлом, которое уже не исправить." },
+    { q: "Предупреждение заранее: If you don't change your ways, you ___ it.",
+      o: ["would have regretted", "regretted", "will regret"], c: 2,
+      w: "First Conditional: будущее ещё открыто, поэтому will + глагол." },
+    { q: "Коллега говорит: Don't be such a scrooge! Что он имеет в виду?",
+      o: ["Не будь таким занудой", "Не будь таким скрягой", "Не пугай меня"], c: 1,
+      w: "A scrooge — скряга. Фамилия героя Диккенса стала обычным словом." },
+    { q: "If the city were to ban cars, the air would be cleaner. Что это за предложение?",
+      o: ["Формальная гипотеза о будущем", "Рассказ о прошлом", "Грамматическая ошибка"], c: 0,
+      w: "Were to + глагол делает гипотезу более формальной и осторожной. Хороший приём для эссе." },
+    { q: "Какой из этих терминов вы действительно встретите в учебнике?",
+      o: ["Future Imperfect Conditional", "Third Conditional", "Past Future Perfect Conditional Continuous"], c: 1,
+      w: "Остальные два придуманы. Первый придумал автор шутки, второй только что придумали мы." }
+  ];
+  var quizBox = document.getElementById("quiz");
+  var answered = 0, correct = 0;
+  function renderScore() {
+    document.getElementById("scoreNum").textContent = correct + " / " + QUIZ.length;
+    var t = "Ответьте на все вопросы, и духи вынесут вердикт.";
+    if (answered === QUIZ.length) {
+      if (correct <= 2) t = "Bah! Humbug! Духи придут ещё раз. Перечитайте строфы III и IV.";
+      else if (correct <= 4) t = "Марли гремит цепями одобрительно, но парочку условных стоит повторить.";
+      else t = "Духи довольны и уходят без единого замечания. Third conditional теперь ваш.";
+    }
+    document.getElementById("scoreText").textContent = t;
+  }
+  function buildQuiz() {
+    quizBox.textContent = "";
+    answered = 0; correct = 0;
+    QUIZ.forEach(function (item, qi) {
+      var box = el("div", "q");
+      box.appendChild(el("div", "num", "Вопрос " + (qi + 1) + " из " + QUIZ.length));
+      box.appendChild(el("div", "", item.q));
+      var opts = el("div", "opts");
+      var btns = item.o.map(function (text, oi) {
+        var b = el("button", "opt", text);
+        b.type = "button";
+        b.addEventListener("click", function () {
+          btns.forEach(function (x) { x.disabled = true; });
+          btns[item.c].classList.add("right");
+          if (oi === item.c) correct++; else b.classList.add("wrong");
+          answered++;
+          box.classList.add("done");
+          renderScore();
+        });
+        opts.appendChild(b);
+        return b;
+      });
+      box.appendChild(opts);
+      box.appendChild(el("div", "why", item.w));
+      quizBox.appendChild(box);
+    });
+    renderScore();
+  }
+  document.getElementById("reset").addEventListener("click", buildQuiz);
+  buildQuiz();
+})();
+</script>
+</body>
+</html>
